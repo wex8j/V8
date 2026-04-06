@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>V8 Live - مكسر صوت مباشر</title>
+    <title>V8 Sound Mixer - Pro Effects</title>
     <style>
         * {
             margin: 0;
@@ -46,101 +46,62 @@
             color: transparent;
         }
 
-        /* قسم الميكروفون المباشر */
-        .live-section {
-            background: #1a1a2a;
-            border-radius: 35px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .mic-status {
+        .controls-row {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .mic-led {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #ff3333;
-            box-shadow: 0 0 6px red;
-            animation: pulse 1s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
-        .mic-text {
-            color: #ffaa66;
-            font-size: 15px;
-            font-weight: bold;
-        }
-        .start-mic-btn {
-            background: #228822;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 40px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #115511;
-        }
-        .start-mic-btn:active { transform: translateY(2px); }
-
-        /* تأثيرات الصوت المباشر */
-        .effects-section {
-            background: #111122;
-            border-radius: 30px;
-            padding: 12px;
-            margin-bottom: 20px;
-        }
-        .effects-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            flex-wrap: wrap;
+            justify-content: space-between;
             gap: 10px;
-            margin-top: 8px;
+            margin-bottom: 20px;
+            background: #1a1a2a;
+            padding: 12px;
+            border-radius: 40px;
         }
-        .effect-btn {
-            background: #2a2a44;
+        .power-btn {
+            background: #cc3366;
             border: none;
-            padding: 10px 0;
+            padding: 8px 16px;
             border-radius: 30px;
-            color: #ddd;
-            font-size: 13px;
+            color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.07s;
+            font-size: 14px;
         }
-        .effect-btn:active { transform: scale(0.96); }
-        .active-effect { background: #ff8844; color: #1a1a2e; box-shadow: 0 0 8px orange; }
-
-        /* أزرار التحكم */
-        .sliders-row {
-            display: flex;
-            gap: 12px;
-            margin: 15px 0;
+        .mute-btn {
+            background: #444466;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
         }
         .slider-group {
             flex: 1;
             text-align: center;
+            min-width: 60px;
         }
-        .slider-group label { color: #aaa; font-size: 11px; display: block; }
-        input[type="range"] { width: 100%; margin-top: 5px; }
-        .power-btn {
-            background: #cc3366;
-            border: none;
-            width: 65px;
-            border-radius: 30px;
-            color: white;
-            font-weight: bold;
+        .slider-group label {
+            color: #aaa;
+            font-size: 10px;
+            display: block;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            border-radius: 5px;
+            background: #333;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ff8844;
             cursor: pointer;
         }
 
-        /* أزرار المكسر V8 */
         .pad-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -157,367 +118,402 @@
             color: #f0f0ff;
             box-shadow: 0 5px 0 #0a0a12;
             cursor: pointer;
+            transition: 0.05s linear;
         }
-        .sound-btn:active { transform: translateY(3px); }
+        .sound-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #0a0a12;
+        }
 
-        footer { text-align: center; font-size: 10px; color: #555; margin-top: 15px; }
-        .off-warning { color: #ff8866; font-size: 12px; margin-top: 8px; }
+        footer {
+            text-align: center;
+            font-size: 10px;
+            color: #555;
+            margin-top: 15px;
+        }
+        
+        .effect-badge {
+            background: #ff884422;
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 11px;
+            color: #ffaa66;
+            text-align: center;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
 <div class="mixer">
-    <div class="v8-title"><h1>🎧 V8 LIVE</h1></div>
-
-    <!-- قسم الميكروفون المباشر -->
-    <div class="live-section">
-        <div class="mic-status">
-            <div class="mic-led" id="micLed"></div>
-            <div class="mic-text" id="micStatusText">الميكروفون متوقف</div>
-        </div>
-        <button class="start-mic-btn" id="startMicBtn">🎤 تشغيل الميكروفون المباشر</button>
-        <div class="off-warning" id="warningMsg" style="display:none;">⚠️ اضغط "تشغيل الميكروفون" واسمح بالصلاحية</div>
-    </div>
-
-    <!-- تأثيرات الصوت (تطبق مباشر على صوتك) -->
-    <div class="effects-section">
-        <div style="color:#ffaa66; font-size:13px; margin-bottom:6px;">🎛️ تأثيرات مباشرة على صوتك:</div>
-        <div class="effects-grid">
-            <button class="effect-btn" data-effect="normal">🟢 طبيعي</button>
-            <button class="effect-btn" data-effect="robot">🤖 روبوت</button>
-            <button class="effect-btn" data-effect="ghost">👻 شبح</button>
-            <button class="effect-btn" data-effect="deep">🐻 عميق</button>
-            <button class="effect-btn" data-effect="chipmunk">🐿️ منخنقة</button>
-            <button class="effect-btn" data-effect="echo">📢 إيكو</button>
-            <button class="effect-btn" data-effect="megaphone">📣 مكبر</button>
-            <button class="effect-btn" data-effect="alien">👽 فضائي</button>
-        </div>
+    <div class="v8-title">
+        <h1>V8 PRO</h1>
     </div>
 
     <!-- أزرار التحكم -->
-    <div class="sliders-row">
-        <div class="slider-group"><label>🎚️ ECHO</label><input type="range" id="echoSlider" min="0" max="100" value="30"></div>
-        <div class="slider-group"><label>🔊 TREBLE</label><input type="range" id="trebleSlider" min="0" max="100" value="50"></div>
-        <div class="slider-group"><label>🎵 BASS</label><input type="range" id="bassSlider" min="0" max="100" value="60"></div>
-        <button class="power-btn" id="powerBtn">⚡POWER</button>
+    <div class="controls-row">
+        <button class="power-btn" id="powerBtn">⚡ POWER</button>
+        <button class="mute-btn" id="muteBgBtn">🔇 كتم خلفية</button>
+        <div class="slider-group">
+            <label>🎚️ ECHO</label>
+            <input type="range" id="echoSlider" min="0" max="100" value="30">
+        </div>
+        <div class="slider-group">
+            <label>🔊 TREBLE</label>
+            <input type="range" id="trebleSlider" min="0" max="100" value="50">
+        </div>
+        <div class="slider-group">
+            <label>🎵 BASS</label>
+            <input type="range" id="bassSlider" min="0" max="100" value="60">
+        </div>
     </div>
 
-    <!-- أزرار المكسر V8 -->
+    <div class="effect-badge">
+        🎤 أزرار المؤثرات: اضغط لتسمع التأثير
+    </div>
+
+    <!-- أزرار V8 الكاملة -->
     <div class="pad-grid">
         <button class="sound-btn" data-sound="electro">🔊 Electro</button>
-        <button class="sound-btn" data-sound="pitch">🎚️ Pitch</button>
+        <button class="sound-btn" data-sound="pitch">🎚️ Pitch Bend</button>
         <button class="sound-btn" data-sound="shot">🔫 Shot</button>
         <button class="sound-btn" data-sound="beating">💓 Beating</button>
-        <button class="sound-btn" data-sound="coldfield">❄️ Cold</button>
+        <button class="sound-btn" data-sound="coldfield">❄️ Coldfield</button>
         <button class="sound-btn" data-sound="songs">🎵 Songs</button>
-        <button class="sound-btn" data-sound="dog">🐕 Dog</button>
-        <button class="sound-btn" data-sound="applause">👏 Clap</button>
+        <button class="sound-btn" data-sound="dog">🐕 DogBarking</button>
+        <button class="sound-btn" data-sound="applause">👏 Applause</button>
+        <button class="sound-btn" data-sound="kiss">💋 Kiss</button>
+        <button class="sound-btn" data-sound="awkward">😬 Awkward</button>
         <button class="sound-btn" data-sound="minions">🍌 Minions</button>
+        <button class="sound-btn" data-sound="giant">🗿 عملاق</button>
     </div>
-    <footer>🎤 شغل الميكروفون → اختار تأثير → صوتك يتغير مباشر</footer>
+
+    <!-- صف ثاني للأصوات الإضافية -->
+    <div class="pad-grid">
+        <button class="sound-btn" data-sound="chipmunk">🐿️ سنجاب</button>
+        <button class="sound-btn" data-sound="laugh">😄 ضحكة</button>
+        <div style="visibility: hidden;"></div>
+    </div>
+
+    <footer>🔊 الأصوات كلها تشتغل مع ECHO - BASS - TREBLE</footer>
 </div>
 
 <script>
-    // ----------------------------------------------------------
-    // تطبيق V8 LIVE - صوت مباشر مع مؤثرات
-    // ----------------------------------------------------------
-    let audioContext = null;
-    let mediaStream = null;
-    let sourceNode = null;
-    let isPowerOn = true;
-    let currentEffect = "normal";
+    // ============================================================
+    // V8 Sound Mixer - كامل الأصوات مع مؤثرات ECHO/BASS/TREBLE
+    // ============================================================
     
-    // العقد الصوتية
-    let inputNode = null;
-    let outputGain = null;
+    let audioCtx = null;
+    let isPowerOn = true;
+    let isMuteBackground = false;
+    let backgroundNoiseNode = null;
+    
+    // المرشحات
     let bassFilter = null;
     let trebleFilter = null;
     let echoDelay = null;
     let echoMix = null;
-    let pitchShifter = null;  // لتغيير طبقة الصوت
-    let workletNode = null;
+    let masterGain = null;
     
-    // العناصر
-    const startMicBtn = document.getElementById('startMicBtn');
-    const micLed = document.getElementById('micLed');
-    const micStatusText = document.getElementById('micStatusText');
-    const warningMsg = document.getElementById('warningMsg');
-    const powerBtn = document.getElementById('powerBtn');
-    const echoSlider = document.getElementById('echoSlider');
-    const trebleSlider = document.getElementById('trebleSlider');
-    const bassSlider = document.getElementById('bassSlider');
-    
-    // بدء الميكروفون المباشر
-    async function startMicrophone() {
-        try {
-            if (audioContext && audioContext.state !== 'closed') {
-                await audioContext.close();
-            }
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaStream = stream;
-            
-            sourceNode = audioContext.createMediaStreamSource(stream);
-            outputGain = audioContext.createGain();
-            
-            // إنشاء المرشحات الأساسية
-            bassFilter = audioContext.createBiquadFilter();
-            bassFilter.type = "lowshelf";
-            bassFilter.frequency.value = 200;
-            
-            trebleFilter = audioContext.createBiquadFilter();
-            trebleFilter.type = "highshelf";
-            trebleFilter.frequency.value = 3000;
-            
-            echoDelay = audioContext.createDelay();
-            echoMix = audioContext.createGain();
-            echoDelay.delayTime.value = 0.3;
-            
-            // توصيل أولي
-            updateFilters();
-            rebuildEffectChain();
-            
-            if (audioContext.state === 'suspended') {
-                await audioContext.resume();
-            }
-            
-            micLed.style.background = "#33ff33";
-            micLed.style.boxShadow = "0 0 8px lime";
-            micStatusText.innerHTML = "🎙️ الميكروفون شغال - صوتك يخرج مباشر";
-            warningMsg.style.display = "none";
-            
-        } catch(err) {
-            console.error(err);
-            micLed.style.background = "#ff3333";
-            micStatusText.innerHTML = "❌ فشل الوصول للميكروفون";
-            warningMsg.style.display = "block";
-        }
-    }
-    
-    // إعادة بناء سلسلة التأثيرات حسب التأثير المختار
-    function rebuildEffectChain() {
-        if (!sourceNode || !audioContext || !outputGain) return;
+    // تهيئة السياق الصوتي
+    function initAudioContext() {
+        if (audioCtx && audioCtx.state !== 'closed') return;
         
-        // فصل كل شيء
-        try {
-            sourceNode.disconnect();
-            bassFilter.disconnect();
-            trebleFilter.disconnect();
-            if (pitchShifter) pitchShifter.disconnect();
-        } catch(e) {}
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        let currentNode = sourceNode;
+        // إنشاء العقد
+        masterGain = audioCtx.createGain();
+        bassFilter = audioCtx.createBiquadFilter();
+        trebleFilter = audioCtx.createBiquadFilter();
         
-        // إضافة تأثير تغيير طبقة الصوت (Pitch Shift) باستخدام PlaybackRate في Buffer؟ نستخدم نهج بسيط: 
-        // لا يمكن تغيير pitch بسهولة في العقد الحقيقية بدون worklet. لكننا نستخدم filter + تغيير بسيط.
-        // بدلاً من التعقيد، سنستخدم مرشحات تشوه الصوت حسب التأثير.
+        bassFilter.type = "lowshelf";
+        bassFilter.frequency.value = 200;
+        bassFilter.gain.value = 6;
         
-        // نضيف المرشحات الأساسية
-        currentNode.connect(bassFilter);
-        currentNode = bassFilter;
-        currentNode.connect(trebleFilter);
-        currentNode = trebleFilter;
+        trebleFilter.type = "highshelf";
+        trebleFilter.frequency.value = 3000;
+        trebleFilter.gain.value = 3;
         
-        // إضافة تأثير خاص حسب currentEffect
-        if (currentEffect === 'robot') {
-            // روبوت: إضافة تشويه بسيط (wave shaping)
-            let waveshaper = audioContext.createWaveShaper();
-            waveshaper.curve = makeDistortionCurve(400);
-            currentNode.connect(waveshaper);
-            currentNode = waveshaper;
-        } 
-        else if (currentEffect === 'ghost') {
-            let gainNode = audioContext.createGain();
-            gainNode.gain.value = 1.2;
-            let filterGhost = audioContext.createBiquadFilter();
-            filterGhost.type = "bandpass";
-            filterGhost.frequency.value = 1200;
-            currentNode.connect(gainNode);
-            gainNode.connect(filterGhost);
-            currentNode = filterGhost;
-        }
-        else if (currentEffect === 'deep') {
-            let gainDeep = audioContext.createGain();
-            gainDeep.gain.value = 1.1;
-            let filterDeep = audioContext.createBiquadFilter();
-            filterDeep.type = "lowshelf";
-            filterDeep.frequency.value = 150;
-            filterDeep.gain.value = 12;
-            currentNode.connect(gainDeep);
-            gainDeep.connect(filterDeep);
-            currentNode = filterDeep;
-        }
-        else if (currentEffect === 'chipmunk') {
-            // تقليد صوت منخنقة بفلتر عالي
-            let highFilter = audioContext.createBiquadFilter();
-            highFilter.type = "highpass";
-            highFilter.frequency.value = 800;
-            let pitchGain = audioContext.createGain();
-            pitchGain.gain.value = 1.3;
-            currentNode.connect(highFilter);
-            highFilter.connect(pitchGain);
-            currentNode = pitchGain;
-        }
-        else if (currentEffect === 'echo') {
-            // echo مطبق على طول
-            let dry = audioContext.createGain();
-            let wet = audioContext.createGain();
-            let delayNode = audioContext.createDelay();
-            delayNode.delayTime.value = 0.35;
-            let echoAmountVal = echoSlider.value / 100;
-            dry.gain.value = 0.6;
-            wet.gain.value = echoAmountVal * 0.8;
-            currentNode.connect(dry);
-            currentNode.connect(delayNode);
-            delayNode.connect(wet);
-            dry.connect(audioContext.destination);
-            wet.connect(audioContext.destination);
-            // الحالة خاصة، نخرج مباشرة
-            return;
-        }
-        else if (currentEffect === 'megaphone') {
-            let filterMega = audioContext.createBiquadFilter();
-            filterMega.type = "bandpass";
-            filterMega.frequency.value = 1500;
-            filterMega.Q.value = 2;
-            let distMega = audioContext.createWaveShaper();
-            distMega.curve = makeDistortionCurve(200);
-            currentNode.connect(filterMega);
-            filterMega.connect(distMega);
-            currentNode = distMega;
-        }
-        else if (currentEffect === 'alien') {
-            let alienFilter = audioContext.createBiquadFilter();
-            alienFilter.type = "allpass";
-            alienFilter.frequency.value = 1800;
-            let alienGain = audioContext.createGain();
-            alienGain.gain.value = 0.9;
-            currentNode.connect(alienFilter);
-            alienFilter.connect(alienGain);
-            currentNode = alienGain;
-        }
+        // توصيل المسار الرئيسي
+        masterGain.connect(bassFilter);
+        bassFilter.connect(trebleFilter);
+        trebleFilter.connect(audioCtx.destination);
         
-        // إضافة الإيكو العالمي من السلايدر (إذا لم يكن التأثير الأساسي echo)
-        let echoAmount = echoSlider.value / 100;
-        if (echoAmount > 0.05 && currentEffect !== 'echo') {
-            let globalDry = audioContext.createGain();
-            let globalWet = audioContext.createGain();
-            let globalDelay = audioContext.createDelay();
-            globalDelay.delayTime.value = 0.28;
-            globalDry.gain.value = 0.7;
-            globalWet.gain.value = echoAmount * 0.5;
-            currentNode.connect(globalDry);
-            currentNode.connect(globalDelay);
-            globalDelay.connect(globalWet);
-            globalDry.connect(outputGain);
-            globalWet.connect(outputGain);
-        } else {
-            currentNode.connect(outputGain);
-        }
-        
-        outputGain.connect(audioContext.destination);
-    }
-    
-    function makeDistortionCurve(amount) {
-        let k = amount / 100;
-        let n_samples = 44100;
-        let curve = new Float32Array(n_samples);
-        for (let i = 0; i < n_samples; i++) {
-            let x = (i * 2) / n_samples - 1;
-            curve[i] = (3 + k) * x * 20 * (Math.PI / 2) / (Math.PI + k * Math.abs(x));
-        }
-        return curve;
+        updateFilters();
     }
     
     function updateFilters() {
         if (!bassFilter || !trebleFilter) return;
-        let bassVal = bassSlider.value;
-        let trebleVal = trebleSlider.value;
-        bassFilter.gain.value = (bassVal / 100) * 18 - 6;
-        trebleFilter.gain.value = (trebleVal / 100) * 18 - 6;
-        if (currentEffect !== 'echo') rebuildEffectChain();
+        let bassVal = parseFloat(document.getElementById('bassSlider').value);
+        let trebleVal = parseFloat(document.getElementById('trebleSlider').value);
+        let bassDb = (bassVal / 100) * 24 - 12;
+        let trebleDb = (trebleVal / 100) * 20 - 10;
+        bassFilter.gain.value = bassDb;
+        trebleFilter.gain.value = trebleDb;
     }
     
-    // تبديل التأثير المباشر
-    function setEffect(effect) {
-        currentEffect = effect;
-        if (sourceNode && audioContext) {
-            rebuildEffectChain();
-        }
-    }
-    
-    // أزرار المكسر V8
-    function playFxSound(type) {
-        if (!isPowerOn) return;
-        if (!audioContext) {
-            alert("شغل الميكروفون أولاً");
+    // إضافة echo للمسار
+    function applyEchoToSource(source, gainNode) {
+        let echoAmount = parseFloat(document.getElementById('echoSlider').value) / 100;
+        if (echoAmount <= 0.05) {
+            gainNode.connect(masterGain);
             return;
         }
-        let osc = audioContext.createOscillator();
-        let gain = audioContext.createGain();
-        osc.connect(gain);
-        gain.connect(audioContext.destination);
-        let now = audioContext.currentTime;
-        let freq = 440, dur = 0.4;
-        switch(type) {
-            case 'electro': freq=880; dur=0.25; break;
-            case 'pitch': freq=523; dur=0.5; break;
-            case 'shot': freq=80; dur=0.15; break;
-            case 'beating': freq=120; dur=0.4; break;
-            case 'coldfield': freq=196; dur=0.7; break;
-            case 'songs': freq=293; dur=0.6; break;
-            case 'dog': freq=650; dur=0.2; break;
-            case 'applause': playNoise(); return;
-            case 'minions': freq=523; dur=0.45; break;
-        }
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.35, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now+dur);
+        
+        let delayNode = audioCtx.createDelay();
+        let wetGain = audioCtx.createGain();
+        let dryGain = audioCtx.createGain();
+        
+        delayNode.delayTime.value = 0.28;
+        wetGain.gain.value = echoAmount * 0.6;
+        dryGain.gain.value = 0.8;
+        
+        gainNode.connect(dryGain);
+        gainNode.connect(delayNode);
+        delayNode.connect(wetGain);
+        
+        dryGain.connect(masterGain);
+        wetGain.connect(masterGain);
+    }
+    
+    // تشغيل صوت نغمة عادية
+    function playTone(frequency, duration, volume, type = 'sine') {
+        if (!isPowerOn) return;
+        if (!audioCtx) initAudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        let osc = audioCtx.createOscillator();
+        let gainNode = audioCtx.createGain();
+        
+        osc.type = type;
+        osc.frequency.value = frequency;
+        
+        osc.connect(gainNode);
+        
+        let now = audioCtx.currentTime;
+        gainNode.gain.setValueAtTime(volume, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        
+        // تطبيق الإيكو والمرشحات
+        applyEchoToSource(osc, gainNode);
+        
         osc.start();
-        osc.stop(now+dur);
+        osc.stop(now + duration);
     }
     
-    function playNoise() {
-        if (!audioContext) return;
+    // تشغيل ضوضاء (للتصفيق والطلقات)
+    function playNoise(duration, volume) {
+        if (!isPowerOn) return;
+        if (!audioCtx) initAudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
         let bufferSize = 4096;
-        let node = audioContext.createScriptProcessor(bufferSize,1,1);
-        let gainN = audioContext.createGain();
-        node.onaudioprocess = e => {
-            let out = e.outputBuffer.getChannelData(0);
-            for(let i=0;i<bufferSize;i++) out[i] = (Math.random()*2-1)*0.4;
+        let noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+        let gainNode = audioCtx.createGain();
+        
+        noiseNode.onaudioprocess = function(e) {
+            let output = e.outputBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = (Math.random() * 2 - 1) * volume;
+            }
         };
-        node.connect(gainN);
-        gainN.connect(audioContext.destination);
-        gainN.gain.setValueAtTime(0.5, audioContext.currentTime);
-        gainN.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime+0.4);
-        setTimeout(()=> node.disconnect(), 450);
+        
+        noiseNode.connect(gainNode);
+        applyEchoToSource(null, gainNode);
+        
+        gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        
+        setTimeout(() => {
+            try {
+                noiseNode.disconnect();
+            } catch(e) {}
+        }, duration * 1000);
     }
     
-    // الأحداث
-    startMicBtn.onclick = startMicrophone;
-    powerBtn.onclick = () => {
-        isPowerOn = !isPowerOn;
-        powerBtn.style.opacity = isPowerOn ? "1" : "0.5";
-        if(outputGain) outputGain.gain.value = isPowerOn ? 1 : 0;
-    };
-    echoSlider.oninput = () => { if(sourceNode) rebuildEffectChain(); };
-    bassSlider.oninput = updateFilters;
-    trebleSlider.oninput = updateFilters;
+    // ============= الأصوات حسب الأزرار =============
+    function playSoundEffect(type) {
+        if (!isPowerOn) return;
+        if (!audioCtx) initAudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        switch(type) {
+            case 'electro':
+                playTone(880, 0.3, 0.5, 'sawtooth');
+                break;
+            case 'pitch':
+                // Pitch bend: نغمة متغيرة
+                let osc = audioCtx.createOscillator();
+                let gainNode = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+                osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
+                osc.connect(gainNode);
+                applyEchoToSource(osc, gainNode);
+                gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.6);
+                break;
+            case 'shot':
+                playNoise(0.2, 0.5);
+                break;
+            case 'beating':
+                playTone(120, 0.4, 0.45, 'triangle');
+                break;
+            case 'coldfield':
+                playTone(196, 0.8, 0.4, 'sine');
+                break;
+            case 'songs':
+                playTone(293.66, 0.7, 0.5, 'sine');
+                break;
+            case 'dog':
+                let oscDog = audioCtx.createOscillator();
+                let gainDog = audioCtx.createGain();
+                oscDog.frequency.setValueAtTime(900, audioCtx.currentTime);
+                oscDog.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
+                oscDog.frequency.setValueAtTime(650, audioCtx.currentTime + 0.15);
+                oscDog.connect(gainDog);
+                applyEchoToSource(oscDog, gainDog);
+                gainDog.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainDog.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                oscDog.start();
+                oscDog.stop(audioCtx.currentTime + 0.3);
+                break;
+            case 'applause':
+                playNoise(0.6, 0.4);
+                break;
+            case 'kiss':
+                playTone(880, 0.15, 0.3, 'sine');
+                break;
+            case 'awkward':
+                playTone(311, 0.9, 0.35, 'sine');
+                break;
+            case 'minions':
+                playTone(523.25, 0.45, 0.55, 'square');
+                break;
+            case 'giant':  // صوت عملاق (Deep voice)
+                let oscGiant = audioCtx.createOscillator();
+                let gainGiant = audioCtx.createGain();
+                oscGiant.type = 'sine';
+                oscGiant.frequency.value = 70;
+                oscGiant.connect(gainGiant);
+                applyEchoToSource(oscGiant, gainGiant);
+                gainGiant.gain.setValueAtTime(0.6, audioCtx.currentTime);
+                gainGiant.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+                oscGiant.start();
+                oscGiant.stop(audioCtx.currentTime + 0.8);
+                break;
+            case 'chipmunk':  // صوت سنجاب (Chipmunk)
+                let oscChip = audioCtx.createOscillator();
+                let gainChip = audioCtx.createGain();
+                oscChip.type = 'sine';
+                oscChip.frequency.value = 1400;
+                oscChip.connect(gainChip);
+                applyEchoToSource(oscChip, gainChip);
+                gainChip.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainChip.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+                oscChip.start();
+                oscChip.stop(audioCtx.currentTime + 0.35);
+                break;
+            case 'laugh':  // صوت ضحكة
+                playLaugh();
+                break;
+            default:
+                playTone(440, 0.3, 0.4, 'sine');
+        }
+    }
     
-    document.querySelectorAll('.effect-btn').forEach(btn => {
-        btn.onclick = () => {
-            document.querySelectorAll('.effect-btn').forEach(b => b.classList.remove('active-effect'));
-            btn.classList.add('active-effect');
-            setEffect(btn.getAttribute('data-effect'));
-        };
-    });
+    // تشغيل صوت ضحكة مركب
+    function playLaugh() {
+        if (!isPowerOn) return;
+        if (!audioCtx) initAudioContext();
+        
+        // سلسلة من النغمات السريعة تحاكي الضحكة
+        let notes = [523, 587, 659, 523, 587, 659, 784];
+        let times = [0, 0.12, 0.24, 0.4, 0.52, 0.64, 0.8];
+        
+        notes.forEach((freq, i) => {
+            setTimeout(() => {
+                if (isPowerOn) {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    osc.connect(gain);
+                    applyEchoToSource(osc, gain);
+                    gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.15);
+                }
+            }, times[i] * 1000);
+        });
+    }
     
+    // كتم ضوضاء الخلفية (يمنع الأصوات الخلفية من النظام)
+    function toggleMuteBackground() {
+        isMuteBackground = !isMuteBackground;
+        const btn = document.getElementById('muteBgBtn');
+        
+        if (isMuteBackground) {
+            btn.style.background = "#cc3333";
+            btn.innerHTML = "🔇 كتم نشط";
+            // إضافة عزل للضوضاء
+            if (audioCtx) {
+                // مرشح عالي يقطع الترددات المنخفضة للخلفية
+                let highpass = audioCtx.createBiquadFilter();
+                highpass.type = "highpass";
+                highpass.frequency.value = 80;
+                masterGain.disconnect();
+                masterGain.connect(highpass);
+                highpass.connect(bassFilter);
+            }
+        } else {
+            btn.style.background = "#444466";
+            btn.innerHTML = "🔇 كتم خلفية";
+            if (audioCtx) {
+                // إعادة التوصيل العادي
+                masterGain.disconnect();
+                masterGain.connect(bassFilter);
+            }
+        }
+    }
+    
+    // ربط الأزرار
     document.querySelectorAll('.sound-btn').forEach(btn => {
-        btn.onclick = () => playFxSound(btn.getAttribute('data-sound'));
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            let soundType = btn.getAttribute('data-sound');
+            if(soundType) {
+                playSoundEffect(soundType);
+            }
+            btn.style.transform = "scale(0.96)";
+            setTimeout(() => { btn.style.transform = ""; }, 100);
+        });
     });
     
-    // تفعيل أول مرة
-    console.log("جاهز - اضغط 'تشغيل الميكروفون المباشر'");
+    // أزرار التحكم
+    document.getElementById('powerBtn').addEventListener('click', () => {
+        isPowerOn = !isPowerOn;
+        const powerBtn = document.getElementById('powerBtn');
+        powerBtn.style.opacity = isPowerOn ? "1" : "0.5";
+        if(masterGain) masterGain.gain.value = isPowerOn ? 1 : 0;
+    });
+    
+    document.getElementById('muteBgBtn').addEventListener('click', toggleMuteBackground);
+    document.getElementById('bassSlider').addEventListener('input', updateFilters);
+    document.getElementById('trebleSlider').addEventListener('input', updateFilters);
+    
+    // بدء التشغيل عند أول لمسة
+    document.body.addEventListener('touchstart', () => {
+        if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }, { once: true });
+    
+    window.addEventListener('load', () => {
+        initAudioContext();
+        console.log("✅ V8 Mixer جاهز - كل الأصوات تشتغل مع ECHO, BASS, TREBLE");
+    });
 </script>
 </body>
-    </html>
+</html>
