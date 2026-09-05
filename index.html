@@ -1,519 +1,900 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>V8 Sound Mixer - Pro Effects</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#970B12" />
+  <title>فورتي جكن | Forty Chicken</title>
 
-        body {
-            background: linear-gradient(145deg, #1a1a2e 0%, #0a0a15 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-        }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-        .mixer {
-            max-width: 550px;
-            width: 100%;
-            background: #0f0f1a;
-            border-radius: 45px;
-            padding: 20px 18px 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.08);
-        }
+  <style>
+    :root{
+      --red:#B10F1A;
+      --red-dark:#7B0A11;
+      --red-deep:#2A0609;
+      --cream:#FFF9F3;
+      --paper:#F6EFE8;
+      --ink:#171212;
+      --muted:#7E706B;
+      --gold:#DEAE57;
+      --line:rgba(25,18,18,.1);
+      --white:rgba(255,255,255,.96);
+      --radius:22px;
+      --ease:cubic-bezier(.22,.75,.2,1);
+      --shadow:0 18px 48px rgba(28,10,10,.14);
+    }
 
-        .v8-title {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .v8-title h1 {
-            font-size: 44px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #ffd89b, #c7e9fb);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
+    *{
+      box-sizing:border-box;
+      -webkit-tap-highlight-color:transparent;
+    }
 
-        .controls-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: #1a1a2a;
-            padding: 12px;
-            border-radius: 40px;
-        }
-        .power-btn {
-            background: #cc3366;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 30px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .mute-btn {
-            background: #444466;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 30px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .slider-group {
-            flex: 1;
-            text-align: center;
-            min-width: 60px;
-        }
-        .slider-group label {
-            color: #aaa;
-            font-size: 10px;
-            display: block;
-        }
-        input[type="range"] {
-            width: 100%;
-            height: 4px;
-            border-radius: 5px;
-            background: #333;
-            -webkit-appearance: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #ff8844;
-            cursor: pointer;
-        }
+    html{
+      scroll-behavior:smooth;
+      background:#130b0b;
+    }
 
-        .pad-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin: 15px 0;
-        }
-        .sound-btn {
-            background: linear-gradient(145deg, #252540, #1a1a2f);
-            border: none;
-            padding: 14px 0;
-            border-radius: 28px;
-            font-weight: bold;
-            font-size: 14px;
-            color: #f0f0ff;
-            box-shadow: 0 5px 0 #0a0a12;
-            cursor: pointer;
-            transition: 0.05s linear;
-        }
-        .sound-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 #0a0a12;
-        }
+    body{
+      margin:0;
+      background:#130b0b;
+      color:var(--ink);
+      font-family:"Tajawal",sans-serif;
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
 
-        footer {
-            text-align: center;
-            font-size: 10px;
-            color: #555;
-            margin-top: 15px;
-        }
-        
-        .effect-badge {
-            background: #ff884422;
-            border-radius: 20px;
-            padding: 5px 10px;
-            font-size: 11px;
-            color: #ffaa66;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-    </style>
+    body.no-scroll{
+      overflow:hidden;
+    }
+
+    img{
+      max-width:100%;
+      display:block;
+    }
+
+    a,button{
+      font:inherit;
+      color:inherit;
+    }
+
+    /* ================= LOADER ================= */
+    .loader{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(circle at 50% 20%, #c11420 0%, #8f0c15 45%, #2A0609 100%);
+      transition:opacity .6s ease, visibility .6s ease;
+    }
+
+    .loader.hide{
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+    }
+
+    .loader-box{
+      text-align:center;
+      color:#fff;
+    }
+
+    .loader-ring{
+      width:86px;
+      height:86px;
+      margin:0 auto 18px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.12);
+      border-top-color:var(--gold);
+      animation:spin .9s linear infinite;
+    }
+
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
+    }
+
+    .loader-title{
+      font-family:"Cairo",sans-serif;
+      font-size:30px;
+      font-weight:900;
+      letter-spacing:-1px;
+      margin:0;
+    }
+
+    .loader-sub{
+      margin:6px 0 0;
+      color:rgba(255,255,255,.7);
+      font-size:11px;
+      letter-spacing:4px;
+      direction:ltr;
+    }
+
+    /* ================= APP ================= */
+    .app{
+      width:100%;
+      max-width:580px;
+      margin:auto;
+      min-height:100svh;
+      overflow:hidden;
+      background:var(--cream);
+      box-shadow:0 0 70px rgba(0,0,0,.35);
+      position:relative;
+    }
+
+    /* ================= HEADER ================= */
+    .header{
+      position:fixed;
+      top:0;
+      right:0;
+      left:0;
+      width:100%;
+      max-width:580px;
+      height:calc(76px + env(safe-area-inset-top));
+      margin:auto;
+      padding:env(safe-area-inset-top) 18px 0;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      z-index:300;
+      transition:background .35s ease, box-shadow .35s ease, backdrop-filter .35s ease;
+    }
+
+    .header.scrolled{
+      background:rgba(33,8,10,.8);
+      backdrop-filter:blur(14px);
+      box-shadow:0 10px 30px rgba(0,0,0,.18);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      text-decoration:none;
+      color:#fff;
+    }
+
+    .brand-mark{
+      width:34px;
+      height:34px;
+      border:1.5px solid var(--gold);
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:var(--gold);
+      font-family:Arial,sans-serif;
+      font-size:10px;
+      font-weight:900;
+      direction:ltr;
+      box-shadow:0 0 0 4px rgba(255,255,255,.05);
+    }
+
+    .brand-copy{
+      display:flex;
+      flex-direction:column;
+      line-height:1.05;
+    }
+
+    .brand-copy strong{
+      font-family:"Cairo",sans-serif;
+      font-size:17px;
+      font-weight:800;
+      letter-spacing:-.5px;
+    }
+
+    .brand-copy span{
+      font-size:9px;
+      letter-spacing:3px;
+      opacity:.72;
+      direction:ltr;
+    }
+
+    .menu-btn{
+      width:45px;
+      height:45px;
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,.28);
+      background:rgba(255,255,255,.06);
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      padding:0;
+    }
+
+    .menu-lines{
+      width:18px;
+      display:grid;
+      gap:5px;
+    }
+
+    .menu-lines span{
+      display:block;
+      height:1.6px;
+      width:100%;
+      background:#fff;
+      border-radius:5px;
+      transition:transform .32s var(--ease), opacity .2s ease;
+    }
+
+    .menu-btn.open .menu-lines span:nth-child(1){
+      transform:translateY(6.6px) rotate(45deg);
+    }
+
+    .menu-btn.open .menu-lines span:nth-child(2){
+      opacity:0;
+    }
+
+    .menu-btn.open .menu-lines span:nth-child(3){
+      transform:translateY(-6.6px) rotate(-45deg);
+    }
+
+    /* ================= DRAWER ================= */
+    .backdrop{
+      position:fixed;
+      inset:0;
+      z-index:400;
+      background:rgba(0,0,0,.55);
+      opacity:0;
+      visibility:hidden;
+      transition:.35s ease;
+    }
+
+    .backdrop.open{
+      opacity:1;
+      visibility:visible;
+    }
+
+    .drawer{
+      position:absolute;
+      top:0;
+      right:0;
+      width:min(86vw,360px);
+      height:100%;
+      background:linear-gradient(180deg, #8B0B13 0%, #5E080E 100%);
+      color:#fff;
+      padding:max(26px, env(safe-area-inset-top)) 24px 28px;
+      transform:translateX(105%);
+      transition:transform .42s var(--ease);
+      display:flex;
+      flex-direction:column;
+    }
+
+    .backdrop.open .drawer{
+      transform:translateX(0);
+    }
+
+    .drawer-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .drawer-close{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,.28);
+      background:transparent;
+      color:#fff;
+      font-size:23px;
+      cursor:pointer;
+    }
+
+    .drawer-brand{
+      font-family:"Cairo",sans-serif;
+      color:var(--gold);
+      font-size:18px;
+      font-weight:800;
+    }
+
+    .drawer-nav{
+      margin-top:48px;
+    }
+
+    .drawer-nav a{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      text-decoration:none;
+      color:#fff;
+      font-family:"Cairo",sans-serif;
+      font-size:18px;
+      font-weight:700;
+      padding:18px 0;
+      border-bottom:1px solid rgba(255,255,255,.14);
+    }
+
+    .drawer-nav span{
+      opacity:.6;
+    }
+
+    .drawer-foot{
+      margin-top:auto;
+      padding-top:20px;
+      border-top:1px solid rgba(255,255,255,.15);
+      color:rgba(255,255,255,.76);
+      font-size:12px;
+      line-height:2;
+    }
+
+    .drawer-foot a{
+      color:var(--gold);
+      text-decoration:none;
+      direction:ltr;
+      display:inline-block;
+      font-weight:700;
+    }
+
+    /* ================= HERO ================= */
+    .hero{
+      position:relative;
+      min-height:100svh;
+      display:flex;
+      align-items:flex-end;
+      padding:110px 22px 38px;
+      color:#fff;
+      overflow:hidden;
+      background:#1d090b;
+    }
+
+    .hero-bg{
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(180deg, rgba(15,4,5,.36) 0%, rgba(15,4,5,.06) 32%, rgba(15,4,5,.92) 100%),
+        url("restaurant.jpg") center/cover no-repeat;
+      transform:scale(1.05);
+      animation:heroZoom 1.4s var(--ease) both;
+    }
+
+    .hero-bg::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 20% 18%, rgba(255,255,255,.18), transparent 28%),
+        radial-gradient(circle at 80% 30%, rgba(177,15,26,.22), transparent 30%);
+      mix-blend-mode:screen;
+    }
+
+    @keyframes heroZoom{
+      from{ opacity:0; transform:scale(1.12); }
+      to{ opacity:1; transform:scale(1.05); }
+    }
+
+    .hero-content{
+      position:relative;
+      z-index:1;
+      width:100%;
+      animation:up .9s var(--ease) .15s both;
+    }
+
+    @keyframes up{
+      from{ opacity:0; transform:translateY(26px); }
+      to{ opacity:1; transform:translateY(0); }
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);
+      backdrop-filter:blur(10px);
+      font-size:10px;
+      font-weight:600;
+      letter-spacing:1.2px;
+      margin-bottom:16px;
+    }
+
+    .eyebrow::before{
+      content:"";
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:var(--gold);
+      box-shadow:0 0 12px var(--gold);
+    }
+
+    .hero h1{
+      margin:0;
+      max-width:360px;
+      font-family:"Cairo",sans-serif;
+      font-weight:900;
+      font-size:clamp(42px, 12vw, 67px);
+      line-height:1.05;
+      letter-spacing:-2px;
+    }
+
+    .hero h1 span{
+      display:block;
+      margin-top:12px;
+      color:var(--gold);
+      font-size:12px;
+      letter-spacing:5px;
+      direction:ltr;
+      font-family:Arial,sans-serif;
+    }
+
+    .hero p{
+      max-width:300px;
+      margin:18px 0 0;
+      color:rgba(255,255,255,.82);
+      font-size:14px;
+      line-height:1.9;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:24px;
+    }
+
+    .hero-btn{
+      min-width:126px;
+      height:48px;
+      padding:0 18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      text-decoration:none;
+      border-radius:999px;
+      font-family:"Cairo",sans-serif;
+      font-size:13px;
+      font-weight:800;
+      transition:transform .2s ease, opacity .2s ease;
+    }
+
+    .hero-btn:active{
+      transform:scale(.97);
+    }
+
+    .hero-btn.primary{
+      background:var(--gold);
+      color:#27170d;
+      box-shadow:0 10px 26px rgba(0,0,0,.2);
+    }
+
+    .hero-btn.secondary{
+      border:1px solid rgba(255,255,255,.25);
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      backdrop-filter:blur(10px);
+    }
+
+    .hero-meta{
+      margin-top:22px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .hero-location{
+      background:rgba(255,255,255,.08);
+      border-right:2px solid var(--gold);
+      backdrop-filter:blur(12px);
+      padding:12px 14px;
+      font-size:11px;
+      line-height:1.85;
+      max-width:180px;
+    }
+
+    .hero-scroll{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,.3);
+      color:#fff;
+      display:grid;
+      place-items:center;
+      text-decoration:none;
+      font-size:18px;
+      animation:float 2s ease-in-out infinite;
+    }
+
+    @keyframes float{
+      50%{ transform:translateY(5px); }
+    }
+
+    /* ================= STATS ================= */
+    .stats{
+      margin-top:-24px;
+      position:relative;
+      z-index:5;
+      padding:0 18px;
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+
+    .stat{
+      background:rgba(255,255,255,.86);
+      backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.7);
+      box-shadow:var(--shadow);
+      border-radius:18px;
+      padding:18px 12px;
+      text-align:center;
+    }
+
+    .stat strong{
+      display:block;
+      font-family:"Cairo",sans-serif;
+      font-size:22px;
+      color:var(--red);
+      margin-bottom:4px;
+    }
+
+    .stat span{
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    /* ================= ABOUT ================= */
+    .about{
+      position:relative;
+      margin-top:24px;
+      padding:60px 22px 54px;
+      background:linear-gradient(180deg, var(--red) 0%, #8f0d16 100%);
+      color:#fff;
+      overflow:hidden;
+    }
+
+    .about::after{
+      content:"40";
+      position:absolute;
+      left:-18px;
+      bottom:-75px;
+      font-size:210px;
+      font-weight:900;
+      line-height:1;
+      color:rgba(255,255,255,.06);
+      font-family:Arial,sans-serif;
+      direction:ltr;
+    }
+
+    .section-mini{
+      position:relative;
+      z-index:1;
+      display:block;
+      margin-bottom:12px;
+      color:rgba(255,255,255,.67);
+      font-size:10px;
+      font-weight:700;
+      letter-spacing:3px;
+      direction:ltr;
+    }
+
+    .about h2{
+      position:relative;
+      z-index:1;
+      max-width:340px;
+      margin:0;
+      font-family:"Cairo",sans-serif;
+      font-size:26px;
+      line-height:1.65;
+      font-weight:800;
+      letter-spacing:-1px;
+    }
+
+    .about h2 em{
+      color:#ffd676;
+      font-style:normal;
+    }
+
+    .about p{
+      position:relative;
+      z-index:1;
+      max-width:320px;
+      margin:16px 0 0;
+      color:rgba(255,255,255,.8);
+      font-size:13px;
+      line-height:2;
+    }
+
+    /* ================= GALLERY ================= */
+    .gallery{
+      padding:44px 18px 18px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(177,15,26,.06), transparent 36%),
+        var(--paper);
+    }
+
+    .section-title{
+      margin:0 0 18px;
+      padding:0 4px;
+      font-family:"Cairo",sans-serif;
+      font-size:22px;
+      font-weight:800;
+      color:var(--ink);
+    }
+
+    .section-desc{
+      margin:-6px 0 18px;
+      padding:0 4px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.8;
+    }
+
+    .gallery-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .gallery-card{
+      position:relative;
+      min-height:165px;
+      border-radius:20px;
+      overflow:hidden;
+      background:#ddd;
+      box-shadow:var(--shadow);
+    }
+
+    .gallery-card.large{
+      grid-column:1 / -1;
+      min-height:250px;
+    }
+
+    .gallery-card img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      transform:scale(1.01);
+    }
+
+    .gallery-card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.18));
+    }
+
+    .gallery-label{
+      position:absolute;
+      right:12px;
+      bottom:12px;
+      z-index:1;
+      padding:8px 12px;
+      border-radius:999px;
+      color:#fff;
+      background:rgba(0,0,0,.35);
+      backdrop-filter:blur(8px);
+      font-size:10px;
+      font-weight:700;
+    }
+
+    /* ================= DETAILS ================= */
+    .details{
+      padding:16px 18px 18px;
+      background:var(--paper);
+    }
+
+    .detail-card{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:18px;
+      min-height:96px;
+      margin-bottom:12px;
+      border-radius:20px;
+      background:rgba(255,255,255,.85);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+    }
+
+    .detail-icon{
+      width:46px;
+      height:46px;
+      flex:0 0 46px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:var(--red);
+      background:#f8e8ea;
+    }
+
+    .detail-icon svg{
+      width:21px;
+      height:21px;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.9;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    .detail-copy small{
+      display:block;
+      margin-bottom:5px;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:600;
+    }
+
+    .detail-copy strong,
+    .detail-copy a{
+      color:var(--ink);
+      text-decoration:none;
+      font-size:14px;
+      font-weight:700;
+      line-height:1.8;
+    }
+
+    .detail-copy a{
+      color:var(--red);
+      direction:ltr;
+      display:inline-block;
+    }
+
+    /* ================= MENU BLOCK ================= */
+    .menu-block{
+      margin:20px 18px 54px;
+      padding:28px 22px;
+      border-radius:24px;
+      background:
+        linear-gradient(135deg, #1a1212 0%, #2b1a17 100%);
+      color:#fff;
+      position:relative;
+      overflow:hidden;
+      box-shadow:0 20px 46px rgba(20,10,10,.2);
+    }
+
+    .menu-block::before{
+      content:"";
+      position:absolute;
+      width:220px;
+      height:220px;
+      border:1px solid rgba(222,174,87,.3);
+      border-radius:50%;
+      left:-70px;
+      top:-80px;
+    }
+
+    .menu-block::after{
+      content:"MENU";
+      position:absolute;
+      left:14px;
+      bottom:7px;
+      font-size:58px;
+      letter-spacing:-4px;
+      font-weight:900;
+      color:rgba(255,255,255,.04);
+      direction:ltr;
+      font-family:Arial,sans-serif;
+    }
+
+    .menu-block > *{
+      position:relative;
+      z-index:1;
+    }
+
+    .menu-block small{
+      color:var(--gold);
+      font-size:10px;
+      font-weight:700;
+      letter-spacing:2px;
+      direction:ltr;
+    }
+
+    .menu-block h2{
+      margin:10px 0 8px;
+      font-family:"Cairo",sans-serif;
+      font-size:24px;
+      font-weight:800;
+    }
+
+    .menu-block p{
+      margin:0;
+      max-width:260px;
+      color:rgba(255,255,255,.66);
+      font-size:13px;
+      line-height:1.9;
+    }
+
+    /* ================= FOOTER ================= */
+    footer{
+      background:var(--red-deep);
+      color:rgba(255,255,255,.58);
+      text-align:center;
+      padding:0 20px calc(98px + env(safe-area-inset-bottom));
+      font-size:11px;
+    }
+
+    .footer-line{
+      width:1px;
+      height:44px;
+      margin:auto auto 18px;
+      background:var(--gold);
+    }
+
+    footer strong{
+      display:block;
+      font-family:"Cairo",sans-serif;
+      font-size:18px;
+      color:#fff;
+      margin-bottom:7px;
+    }
+
+    footer p{
+      margin:0;
+      line-height:1.95;
+    }
+
+    /* ================= STICKY CALL ================= */
+    .sticky-order{
+      position:fixed;
+      left:18px;
+      right:18px;
+      bottom:max(16px, env(safe-area-inset-bottom));
+      z-index:250;
+      height:58px;
+      border-radius:999px;
+      background:linear-gradient(135deg, var(--red) 0%, #930d16 100%);
+      color:#fff;
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      font-family:"Cairo",sans-serif;
+      font-size:14px;
+      font-weight:800;
+      box-shadow:0 18px 30px rgba(108,8,16,.38);
+      transition:transform .2s ease;
+    }
+
+    .sticky-order:active{
+      transform:scale(.975);
+    }
+
+    .sticky-order svg{
+      width:18px;
+      height:18px;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:2;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    @media (min-width:581px){
+      body{
+        padding:18px 0;
+      }
+
+      .header{
+        top:18px;
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *,
+      *::before,
+      *::after{
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:.01ms !important;
+        scroll-behavior:auto !important;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="mixer">
-    <div class="v8-title">
-        <h1>V8 PRO</h1>
-    </div>
 
-    <!-- أزرار التحكم -->
-    <div class="controls-row">
-        <button class="power-btn" id="powerBtn">⚡ POWER</button>
-        <button class="mute-btn" id="muteBgBtn">🔇 كتم خلفية</button>
-        <div class="slider-group">
-            <label>🎚️ ECHO</label>
-            <input type="range" id="echoSlider" min="0" max="100" value="30">
-        </div>
-        <div class="slider-group">
-            <label>🔊 TREBLE</label>
-            <input type="range" id="trebleSlider" min="0" max="100" value="50">
-        </div>
-        <div class="slider-group">
-            <label>🎵 BASS</label>
-            <input type="range" id="bassSlider" min="0" max="100" value="60">
-        </div>
-    </div>
-
-    <div class="effect-badge">
-        🎤 أزرار المؤثرات: اضغط لتسمع التأثير
-    </div>
-
-    <!-- أزرار V8 الكاملة -->
-    <div class="pad-grid">
-        <button class="sound-btn" data-sound="electro">🔊 Electro</button>
-        <button class="sound-btn" data-sound="pitch">🎚️ Pitch Bend</button>
-        <button class="sound-btn" data-sound="shot">🔫 Shot</button>
-        <button class="sound-btn" data-sound="beating">💓 Beating</button>
-        <button class="sound-btn" data-sound="coldfield">❄️ Coldfield</button>
-        <button class="sound-btn" data-sound="songs">🎵 Songs</button>
-        <button class="sound-btn" data-sound="dog">🐕 DogBarking</button>
-        <button class="sound-btn" data-sound="applause">👏 Applause</button>
-        <button class="sound-btn" data-sound="kiss">💋 Kiss</button>
-        <button class="sound-btn" data-sound="awkward">😬 Awkward</button>
-        <button class="sound-btn" data-sound="minions">🍌 Minions</button>
-        <button class="sound-btn" data-sound="giant">🗿 عملاق</button>
-    </div>
-
-    <!-- صف ثاني للأصوات الإضافية -->
-    <div class="pad-grid">
-        <button class="sound-btn" data-sound="chipmunk">🐿️ سنجاب</button>
-        <button class="sound-btn" data-sound="laugh">😄 ضحكة</button>
-        <div style="visibility: hidden;"></div>
-    </div>
-
-    <footer>🔊 الأصوات كلها تشتغل مع ECHO - BASS - TREBLE</footer>
-</div>
-
-<script>
-    // ============================================================
-    // V8 Sound Mixer - كامل الأصوات مع مؤثرات ECHO/BASS/TREBLE
-    // ============================================================
-    
-    let audioCtx = null;
-    let isPowerOn = true;
-    let isMuteBackground = false;
-    let backgroundNoiseNode = null;
-    
-    // المرشحات
-    let bassFilter = null;
-    let trebleFilter = null;
-    let echoDelay = null;
-    let echoMix = null;
-    let masterGain = null;
-    
-    // تهيئة السياق الصوتي
-    function initAudioContext() {
-        if (audioCtx && audioCtx.state !== 'closed') return;
-        
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // إنشاء العقد
-        masterGain = audioCtx.createGain();
-        bassFilter = audioCtx.createBiquadFilter();
-        trebleFilter = audioCtx.createBiquadFilter();
-        
-        bassFilter.type = "lowshelf";
-        bassFilter.frequency.value = 200;
-        bassFilter.gain.value = 6;
-        
-        trebleFilter.type = "highshelf";
-        trebleFilter.frequency.value = 3000;
-        trebleFilter.gain.value = 3;
-        
-        // توصيل المسار الرئيسي
-        masterGain.connect(bassFilter);
-        bassFilter.connect(trebleFilter);
-        trebleFilter.connect(audioCtx.destination);
-        
-        updateFilters();
-    }
-    
-    function updateFilters() {
-        if (!bassFilter || !trebleFilter) return;
-        let bassVal = parseFloat(document.getElementById('bassSlider').value);
-        let trebleVal = parseFloat(document.getElementById('trebleSlider').value);
-        let bassDb = (bassVal / 100) * 24 - 12;
-        let trebleDb = (trebleVal / 100) * 20 - 10;
-        bassFilter.gain.value = bassDb;
-        trebleFilter.gain.value = trebleDb;
-    }
-    
-    // إضافة echo للمسار
-    function applyEchoToSource(source, gainNode) {
-        let echoAmount = parseFloat(document.getElementById('echoSlider').value) / 100;
-        if (echoAmount <= 0.05) {
-            gainNode.connect(masterGain);
-            return;
-        }
-        
-        let delayNode = audioCtx.createDelay();
-        let wetGain = audioCtx.createGain();
-        let dryGain = audioCtx.createGain();
-        
-        delayNode.delayTime.value = 0.28;
-        wetGain.gain.value = echoAmount * 0.6;
-        dryGain.gain.value = 0.8;
-        
-        gainNode.connect(dryGain);
-        gainNode.connect(delayNode);
-        delayNode.connect(wetGain);
-        
-        dryGain.connect(masterGain);
-        wetGain.connect(masterGain);
-    }
-    
-    // تشغيل صوت نغمة عادية
-    function playTone(frequency, duration, volume, type = 'sine') {
-        if (!isPowerOn) return;
-        if (!audioCtx) initAudioContext();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        
-        let osc = audioCtx.createOscillator();
-        let gainNode = audioCtx.createGain();
-        
-        osc.type = type;
-        osc.frequency.value = frequency;
-        
-        osc.connect(gainNode);
-        
-        let now = audioCtx.currentTime;
-        gainNode.gain.setValueAtTime(volume, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
-        
-        // تطبيق الإيكو والمرشحات
-        applyEchoToSource(osc, gainNode);
-        
-        osc.start();
-        osc.stop(now + duration);
-    }
-    
-    // تشغيل ضوضاء (للتصفيق والطلقات)
-    function playNoise(duration, volume) {
-        if (!isPowerOn) return;
-        if (!audioCtx) initAudioContext();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        
-        let bufferSize = 4096;
-        let noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
-        let gainNode = audioCtx.createGain();
-        
-        noiseNode.onaudioprocess = function(e) {
-            let output = e.outputBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = (Math.random() * 2 - 1) * volume;
-            }
-        };
-        
-        noiseNode.connect(gainNode);
-        applyEchoToSource(null, gainNode);
-        
-        gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        
-        setTimeout(() => {
-            try {
-                noiseNode.disconnect();
-            } catch(e) {}
-        }, duration * 1000);
-    }
-    
-    // ============= الأصوات حسب الأزرار =============
-    function playSoundEffect(type) {
-        if (!isPowerOn) return;
-        if (!audioCtx) initAudioContext();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        
-        switch(type) {
-            case 'electro':
-                playTone(880, 0.3, 0.5, 'sawtooth');
-                break;
-            case 'pitch':
-                // Pitch bend: نغمة متغيرة
-                let osc = audioCtx.createOscillator();
-                let gainNode = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
-                osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
-                osc.connect(gainNode);
-                applyEchoToSource(osc, gainNode);
-                gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.6);
-                break;
-            case 'shot':
-                playNoise(0.2, 0.5);
-                break;
-            case 'beating':
-                playTone(120, 0.4, 0.45, 'triangle');
-                break;
-            case 'coldfield':
-                playTone(196, 0.8, 0.4, 'sine');
-                break;
-            case 'songs':
-                playTone(293.66, 0.7, 0.5, 'sine');
-                break;
-            case 'dog':
-                let oscDog = audioCtx.createOscillator();
-                let gainDog = audioCtx.createGain();
-                oscDog.frequency.setValueAtTime(900, audioCtx.currentTime);
-                oscDog.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
-                oscDog.frequency.setValueAtTime(650, audioCtx.currentTime + 0.15);
-                oscDog.connect(gainDog);
-                applyEchoToSource(oscDog, gainDog);
-                gainDog.gain.setValueAtTime(0.5, audioCtx.currentTime);
-                gainDog.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-                oscDog.start();
-                oscDog.stop(audioCtx.currentTime + 0.3);
-                break;
-            case 'applause':
-                playNoise(0.6, 0.4);
-                break;
-            case 'kiss':
-                playTone(880, 0.15, 0.3, 'sine');
-                break;
-            case 'awkward':
-                playTone(311, 0.9, 0.35, 'sine');
-                break;
-            case 'minions':
-                playTone(523.25, 0.45, 0.55, 'square');
-                break;
-            case 'giant':  // صوت عملاق (Deep voice)
-                let oscGiant = audioCtx.createOscillator();
-                let gainGiant = audioCtx.createGain();
-                oscGiant.type = 'sine';
-                oscGiant.frequency.value = 70;
-                oscGiant.connect(gainGiant);
-                applyEchoToSource(oscGiant, gainGiant);
-                gainGiant.gain.setValueAtTime(0.6, audioCtx.currentTime);
-                gainGiant.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
-                oscGiant.start();
-                oscGiant.stop(audioCtx.currentTime + 0.8);
-                break;
-            case 'chipmunk':  // صوت سنجاب (Chipmunk)
-                let oscChip = audioCtx.createOscillator();
-                let gainChip = audioCtx.createGain();
-                oscChip.type = 'sine';
-                oscChip.frequency.value = 1400;
-                oscChip.connect(gainChip);
-                applyEchoToSource(oscChip, gainChip);
-                gainChip.gain.setValueAtTime(0.5, audioCtx.currentTime);
-                gainChip.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
-                oscChip.start();
-                oscChip.stop(audioCtx.currentTime + 0.35);
-                break;
-            case 'laugh':  // صوت ضحكة
-                playLaugh();
-                break;
-            default:
-                playTone(440, 0.3, 0.4, 'sine');
-        }
-    }
-    
-    // تشغيل صوت ضحكة مركب
-    function playLaugh() {
-        if (!isPowerOn) return;
-        if (!audioCtx) initAudioContext();
-        
-        // سلسلة من النغمات السريعة تحاكي الضحكة
-        let notes = [523, 587, 659, 523, 587, 659, 784];
-        let times = [0, 0.12, 0.24, 0.4, 0.52, 0.64, 0.8];
-        
-        notes.forEach((freq, i) => {
-            setTimeout(() => {
-                if (isPowerOn) {
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.value = freq;
-                    osc.connect(gain);
-                    applyEchoToSource(osc, gain);
-                    gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.15);
-                }
-            }, times[i] * 1000);
-        });
-    }
-    
-    // كتم ضوضاء الخلفية (يمنع الأصوات الخلفية من النظام)
-    function toggleMuteBackground() {
-        isMuteBackground = !isMuteBackground;
-        const btn = document.getElementById('muteBgBtn');
-        
-        if (isMuteBackground) {
-            btn.style.background = "#cc3333";
-            btn.innerHTML = "🔇 كتم نشط";
-            // إضافة عزل للضوضاء
-            if (audioCtx) {
-                // مرشح عالي يقطع الترددات المنخفضة للخلفية
-                let highpass = audioCtx.createBiquadFilter();
-                highpass.type = "highpass";
-                highpass.frequency.value = 80;
-                masterGain.disconnect();
-                masterGain.connect(highpass);
-                highpass.connect(bassFilter);
-            }
-        } else {
-            btn.style.background = "#444466";
-            btn.innerHTML = "🔇 كتم خلفية";
-            if (audioCtx) {
-                // إعادة التوصيل العادي
-                masterGain.disconnect();
-                masterGain.connect(bassFilter);
-            }
-        }
-    }
-    
-    // ربط الأزرار
-    document.querySelectorAll('.sound-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            let soundType = btn.getAttribute('data-sound');
-            if(soundType) {
-                playSoundEffect(soundType);
-            }
-            btn.style.transform = "scale(0.96)";
-            setTimeout(() => { btn.style.transform = ""; }, 100);
-        });
-    });
-    
-    // أزرار التحكم
-    document.getElementById('powerBtn').addEventListener('click', () => {
-        isPowerOn = !isPowerOn;
-        const powerBtn = document.getElementById('powerBtn');
-        powerBtn.style.opacity = isPowerOn ? "1" : "0.5";
-        if(masterGain) masterGain.gain.value = isPowerOn ? 1 : 0;
-    });
-    
-    document.getElementById('muteBgBtn').addEventListener('click', toggleMuteBackground);
-    document.getElementById('bassSlider').addEventListener('input', updateFilters);
-    document.getElementById('trebleSlider').addEventListener('input', updateFilters);
-    
-    // بدء التشغيل عند أول لمسة
-    document.body.addEventListener('touchstart', () => {
-        if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-    }, { once: true });
-    
-    window.addEventListener('load', () => {
-        initAudioContext();
-        console.log("✅ V8 Mixer جاهز - كل الأصوات تشتغل مع ECHO, BASS, TREBLE");
-    });
-</script>
-</body>
-</html>
+  <!-- Loader -->
+  <div class="loader" id="loader">
+    <div class="loader-box">
+      <div class="loader-ring"></div>
+      <h2 class="loade
